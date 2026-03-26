@@ -20,18 +20,18 @@
     const { useState, useEffect } = React;
 
     // ==============================================================
-    // ZONA DE CONFIGURARE: PUNE DATELE TALE AICI
+    // ZONA DE CONFIGURARE: DATELE TALE SUNT DEJA AICI
     // ==============================================================
     const firebaseConfig = {
       apiKey: "AIzaSyCK6CUymJrO7et9T5-z4_u0XRKVKmB7FVw",
-  authDomain: "mtb-hub-723e5.firebaseapp.com",
-  projectId: "mtb-hub-723e5",
-  storageBucket: "mtb-hub-723e5.firebasestorage.app",
-  messagingSenderId: "378751049137",
-  appId: "1:378751049137:web:7a352b4e4c4d5a590db190"
+      authDomain: "mtb-hub-723e5.firebaseapp.com",
+      projectId: "mtb-hub-723e5",
+      storageBucket: "mtb-hub-723e5.firebasestorage.app",
+      messagingSenderId: "378751049137",
+      appId: "1:378751049137:web:7a352b4e4c4d5a590db190"
     };
 
-    // Dacă vrei să funcționeze și inteligența artificială, pune cheia Gemini aici:
+    // Cheia ta AI Gemini
     const GEMINI_API_KEY = "AIzaSyCjf6pr3vdDoM0Hfp_QbD5Uf4XUtYXkv3M"; 
     // ==============================================================
 
@@ -98,7 +98,6 @@
         return () => unsubscribe();
       }, []);
 
-      // FIX: Calea bazei de date simplificată la o colecție root
       useEffect(() => {
         if (!user) return;
         const q = query(collection(db, 'students'));
@@ -153,7 +152,8 @@
         const fullPrompt = `Ești un Master Instructor MTB. Oferă 3 sfaturi metodice scurte pentru instructori în limba română (max 80 cuvinte). Concentrează-te pe corecții tehnice.\n\nDate: Nivel: ${lvl}. Subcategorie: ${subName}. Task-uri: ${tasks.join(", ")}.`;
 
         try {
-          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+          // Folosim modelul corect suportat
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
