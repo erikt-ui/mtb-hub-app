@@ -23,7 +23,7 @@
     // ZONA DE CONFIGURARE: PUNE DATELE TALE AICI
     // ==============================================================
     const firebaseConfig = {
-       apiKey: "AIzaSyCK6CUymJrO7et9T5-z4_u0XRKVKmB7FVw",
+      apiKey: "AIzaSyCK6CUymJrO7et9T5-z4_u0XRKVKmB7FVw",
   authDomain: "mtb-hub-723e5.firebaseapp.com",
   projectId: "mtb-hub-723e5",
   storageBucket: "mtb-hub-723e5.firebasestorage.app",
@@ -32,7 +32,7 @@
     };
 
     // Dacă vrei să funcționeze și inteligența artificială, pune cheia Gemini aici:
-    const GEMINI_API_KEY = "AIzaSyCjf6pr3vdDoM0Hfp_QbD5Uf4XUtYXkv3M"; 
+    const GEMINI_API_KEY = ""; 
     // ==============================================================
 
     const app = initializeApp(firebaseConfig);
@@ -145,28 +145,32 @@
 
       const getInstructorAdvice = async (lvl, subName, tasks) => {
         if (!user || !GEMINI_API_KEY) {
-            setAiContent({ title: "Atenție", text: "Trebuie să introduci cheia API Gemini în cod pentru a folosi această funcție."});
+            setAiContent({ title: "Atenție", text: "Lipsește cheia API Gemini."});
             return;
         }
         setIsAiLoading(true);
         
-        const prompt = `Nivel: ${lvl}. Subcategorie: ${subName}. Task-uri: ${tasks.join(", ")}.`;
-        const systemPrompt = "Ești un Master Instructor MTB. Oferă 3 sfaturi metodice scurte pentru instructori în limba română (max 80 cuvinte). Concentrează-te pe corecții tehnice.";
+        const fullPrompt = `Ești un Master Instructor MTB. Oferă 3 sfaturi metodice scurte pentru instructori în limba română (max 80 cuvinte). Concentrează-te pe corecții tehnice.\n\nDate: Nivel: ${lvl}. Subcategorie: ${subName}. Task-uri: ${tasks.join(", ")}.`;
 
         try {
           const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }],
-              systemInstruction: { parts: [{ text: systemPrompt }] }
+              contents: [{ parts: [{ text: fullPrompt }] }]
             })
           });
+          
           const data = await resp.json();
+          
+          if (!resp.ok) {
+            throw new Error(data.error?.message || `Eroare HTTP: ${resp.status}`);
+          }
+          
           const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          setAiContent({ title: String(subName), text: text || "Eroare la generare." });
+          setAiContent({ title: String(subName), text: text || "Răspuns gol." });
         } catch (e) { 
-          setAiContent({ title: "Eroare", text: "Nu m-am putut conecta la serverul AI." });
+          setAiContent({ title: "Eroare AI", text: e.message });
         } finally { 
           setIsAiLoading(false); 
         }
