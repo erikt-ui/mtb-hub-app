@@ -38,7 +38,6 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // --- Icoane SVG ---
     const TargetIcon = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>;
     const ChevronIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>;
     const CheckIcon = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
@@ -151,8 +150,24 @@
         const fullPrompt = `Ești un Master Instructor MTB. Oferă 3 sfaturi metodice scurte pentru instructori în limba română (max 80 cuvinte). Concentrează-te pe corecții tehnice.\n\nDate:\nNivel: ${lvl}\nSubcategorie: ${subName}\nTask-uri: ${tasks.join(", ")}`;
 
         try {
-          // Versiunea oficială și stabilă a API-ului
-          const resp = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+          // 1. Script de auto-detecție a modelelor disponibile
+          const listResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
+          const listData = await listResp.json();
+
+          if (!listResp.ok) {
+            throw new Error(listData.error?.message || "Nu am putut citi modelele de la Google.");
+          }
+
+          // 2. Selectăm automat primul model capabil să genereze text
+          const validModel = listData.models?.find(m => m.supportedGenerationMethods?.includes("generateContent") && m.name.includes("flash")) 
+                          || listData.models?.find(m => m.supportedGenerationMethods?.includes("generateContent"));
+
+          if (!validModel) {
+            throw new Error("Cheia ta API nu are niciun model de text activat.");
+          }
+
+          // 3. Facem cererea folosind numele exact al modelului preluat de la server
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/${validModel.name}:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
